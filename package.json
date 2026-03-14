@@ -1,0 +1,14 @@
+{
+  "name": "axiomforge",
+  "private": true,
+  "workspaces": [
+    "agent",
+    "contracts",
+    "apps/web",
+    "packages/receipt"
+  ],
+  "scripts": {
+    "lint": "echo 'lint wip'",
+    "test": "echo 'test wip'"
+  }
+}
