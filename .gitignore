@@ -8,3 +8,11 @@ coverage
 .tmp
 .tmp/*
 *.log
+# Next.js
+apps/web/.next
+apps/web/out
+
+# Hardhat
+contracts/artifacts
+contracts/cache
+contracts/typechain-types
