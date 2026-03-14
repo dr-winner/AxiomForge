@@ -1,6 +1,6 @@
 {
   "name": "@axiomforge/agent",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@axiomforge/receipt": "*",
     "@octokit/rest": "^21.0.0",
     "dotenv": "^16.4.5",
     "node-fetch": "^3.3.2",

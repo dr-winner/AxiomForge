@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { Octokit } from '@octokit/rest';
+import { executeTask } from './execution.js';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const OWNER = process.env.GITHUB_OWNER || 'dr-winner';
@@ -23,7 +24,16 @@ async function main() {
     console.log(`#${issue.number} ${issue.title}`);
   }
 
-  // TODO: plan → execute → verify → receipt
+  // Placeholder execution flow
+  const result = await executeTask({
+    taskId: 'demo-task',
+    commitHash: 'demo-commit',
+    artifactURI: 'ipfs://demo',
+    agentId: 'erc8004:demo',
+    repoPath: process.cwd()
+  });
+
+  console.log('Receipt created:', result.receiptHash);
 }
 
 main().catch((err) => {
