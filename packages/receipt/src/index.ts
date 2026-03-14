@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { keccak256, toUtf8Bytes } from 'ethers';
 
 export const ReceiptSchema = z.object({
   taskHash: z.string(),
@@ -12,6 +13,6 @@ export const ReceiptSchema = z.object({
 export type Receipt = z.infer<typeof ReceiptSchema>;
 
 export function hashReceipt(receipt: Receipt): string {
-  // placeholder hash (replace with keccak256)
-  return JSON.stringify(receipt);
+  const payload = JSON.stringify(receipt);
+  return keccak256(toUtf8Bytes(payload));
 }
