@@ -1,32 +1,35 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import ReceiptCard from './components/ReceiptCard';
+import { CONTRACT_ADDRESS, getExplorerTxUrl } from './lib/contract';
 
 // Placeholder data - will be replaced with on-chain data once contract is deployed
-const MOCK_RUNS = [
+const MOCK_RECEIPTS = [
   {
-    id: 'run_001',
+    runId: 'run_001',
     issue: 'Fix auth redirect bug',
-    status: 'completed',
     receiptHash: '0x7a8f9c2d1e4b5a6c3d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c',
+    artifactUri: 'ipfs://QmX7Kd9Zq3N8pR2vL5wY6tB4mC1jH9fE8aS3dG7kP0uI2',
     timestamp: '2026-03-14T18:30:00Z',
+    status: 'completed' as const,
   },
   {
-    id: 'run_002',
+    runId: 'run_002',
     issue: 'Add rate limiting to API',
-    status: 'verified',
     receiptHash: '0x1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c',
+    artifactUri: 'ipfs://QmY8Le0Ar4O9qS3wM6xZ7uC5nD2kI0gF9bT4eH8lQ1vJ3',
     timestamp: '2026-03-14T20:15:00Z',
+    status: 'verified' as const,
   },
 ];
 
 export default function Page() {
-  const [contractAddress, setContractAddress] = useState<string | null>(null);
-  const [runs, setRuns] = useState(MOCK_RUNS);
+  const [contractAddress, setContractAddress] = useState<string>(CONTRACT_ADDRESS);
+  const [receipts, setReceipts] = useState(MOCK_RECEIPTS);
+  const [isRunningDemo, setIsRunningDemo] = useState(false);
 
   useEffect(() => {
-    // TODO: Fetch contract address from env or API
-    // Once deployed, this will read from the blockchain
     const stored = localStorage.getItem('axiomforge_contract');
     if (stored) setContractAddress(stored);
   }, []);
@@ -44,63 +47,55 @@ export default function Page() {
       </header>
 
       <section style={{ marginBottom: 32 }}>
-        <h2 style={{ fontSize: 20, marginBottom: 12 }}>🚀 Agent Runs</h2>
-        <div style={{ border: '1px solid #e0e0e0', borderRadius: 8, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-            <thead style={{ background: '#f5f5f5' }}>
-              <tr>
-                <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #e0e0e0' }}>Run ID</th>
-                <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #e0e0e0' }}>Issue</th>
-                <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #e0e0e0' }}>Status</th>
-                <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #e0e0e0' }}>Receipt</th>
-              </tr>
-            </thead>
-            <tbody>
-              {runs.map((run, idx) => (
-                <tr key={run.id} style={{ background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
-                  <td style={{ padding: 12, borderBottom: '1px solid #e0e0e0', fontFamily: 'monospace' }}>{run.id}</td>
-                  <td style={{ padding: 12, borderBottom: '1px solid #e0e0e0' }}>{run.issue}</td>
-                  <td style={{ padding: 12, borderBottom: '1px solid #e0e0e0' }}>
-                    <span style={{
-                      padding: '4px 8px',
-                      borderRadius: 4,
-                      fontSize: 12,
-                      background: run.status === 'verified' ? '#d4edda' : run.status === 'completed' ? '#fff3cd' : '#e2e3e5',
-                      color: run.status === 'verified' ? '#155724' : run.status === 'completed' ? '#856404' : '#383d41',
-                    }}>
-                      {run.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: 12, borderBottom: '1px solid #e0e0e0', fontFamily: 'monospace', fontSize: 12 }}>
-                    {run.receiptHash.slice(0, 16)}...
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <h2 style={{ fontSize: 20, marginBottom: 12 }}>📜 Receipt Registry</h2>
+        {receipts.length > 0 ? (
+          receipts.map((receipt) => (
+            <ReceiptCard key={receipt.runId} {...receipt} />
+          ))
+        ) : (
+          <div style={{ background: '#f8f9fa', padding: 16, borderRadius: 8, border: '1px solid #e0e0e0' }}>
+            <p style={{ margin: 0, color: '#666' }}>No receipts yet. Run a demo task to mint your first receipt!</p>
+          </div>
+        )}
       </section>
 
       <section style={{ marginBottom: 32 }}>
-        <h2 style={{ fontSize: 20, marginBottom: 12 }}>📜 Receipt Registry</h2>
-        <div style={{ background: '#f8f9fa', padding: 16, borderRadius: 8, border: '1px solid #e0e0e0' }}>
-          <p style={{ margin: '0 0 12px', color: '#666' }}>
-            On-chain receipts will appear here once the contract is deployed to Base Sepolia.
+        <h2 style={{ fontSize: 20, marginBottom: 12 }}>🧪 Demo Control</h2>
+        <div style={{ background: '#f0f4ff', padding: 16, borderRadius: 8, border: '1px solid #d0d7ff' }}>
+          <p style={{ margin: '0 0 12px', color: '#0066ff' }}>
+            Trigger an end-to-end agent run: GitHub issue → code patch → tests → receipt mint
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button
               style={{
                 padding: '10px 20px',
-                background: '#0066ff',
+                background: isRunningDemo ? '#ccc' : '#0066ff',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 6,
-                cursor: 'pointer',
+                cursor: isRunningDemo ? 'not-allowed' : 'pointer',
                 fontSize: 14,
+                opacity: isRunningDemo ? 0.6 : 1,
               }}
-              onClick={() => alert('Demo: This would trigger a new agent run → GitHub issue → patch → test → receipt mint')}
+              disabled={isRunningDemo}
+              onClick={async () => {
+                setIsRunningDemo(true);
+                // Simulated demo run - will connect to agent backend later
+                await new Promise(r => setTimeout(r, 2000));
+                const newReceipt = {
+                  runId: `run_${String(receipts.length + 1).padStart(3, '0')}`,
+                  issue: 'Demo: Auto-generated task',
+                  receiptHash: `0x${Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+                  artifactUri: 'ipfs://QmDemo' + Math.random().toString(36).slice(2, 10),
+                  timestamp: new Date().toISOString(),
+                  status: 'completed' as const,
+                };
+                setReceipts(prev => [newReceipt, ...prev]);
+                setIsRunningDemo(false);
+                alert('Demo run complete! Receipt minted (simulated).');
+              }}
             >
-              🧪 Run Demo Task
+              {isRunningDemo ? '⏳ Running...' : '▶️ Run Demo Task'}
             </button>
             <button
               style={{
@@ -113,11 +108,29 @@ export default function Page() {
                 fontSize: 14,
               }}
               onClick={() => {
-                navigator.clipboard.writeText(contractAddress || 'pending deployment');
-                alert('Contract address copied!');
+                if (contractAddress && contractAddress !== '0x0000000000000000000000000000000000000000') {
+                  navigator.clipboard.writeText(contractAddress);
+                  alert('Contract address copied!');
+                } else {
+                  alert('Contract not deployed yet. Waiting for deployment...');
+                }
               }}
             >
-              📋 Copy Contract Address
+              📋 {contractAddress && contractAddress !== '0x0000000000000000000000000000000000000000' ? 'Copy Contract Address' : 'Pending Deployment'}
+            </button>
+            <button
+              style={{
+                padding: '10px 20px',
+                background: '#fff',
+                color: '#333',
+                border: '1px solid #ddd',
+                borderRadius: 6,
+                cursor: 'pointer',
+                fontSize: 14,
+              }}
+              onClick={() => window.open(getExplorerTxUrl('latest'), '_blank')}
+            >
+              🔍 Base Sepolia Explorer
             </button>
           </div>
         </div>
