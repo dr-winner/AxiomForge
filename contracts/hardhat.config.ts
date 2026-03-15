@@ -1,5 +1,8 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC || '';
 const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || '';
