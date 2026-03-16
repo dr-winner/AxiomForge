@@ -17,7 +17,7 @@ export interface ReceiptData {
 }
 
 // Placeholder contract address - update after deployment
-export const CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const CONTRACT_ADDRESS = '0x6eeA600d2AbC11D3fF82a6732b1042Eec52A111d';
 
 // Base Sepolia chain ID
 export const CHAIN_ID = 84532;
