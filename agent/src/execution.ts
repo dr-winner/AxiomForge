@@ -1,6 +1,6 @@
-import { hashReceipt, Receipt } from '@axiomforge/receipt';
+import { hashReceipt, Receipt, buildTaskHash, buildTestReportHash } from '@axiomforge/receipt';
 import { Octokit } from '@octokit/rest';
-import { writeFileSync, readFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 
 interface ExecutionResult {
@@ -8,6 +8,7 @@ interface ExecutionResult {
   receiptHash: string;
   testOutput: string;
   patchOutput: string;
+  testStatus: 'passed' | 'failed' | 'skipped';
 }
 
 export async function executeTask(params: {
@@ -20,8 +21,9 @@ export async function executeTask(params: {
   agentId: string;
   repoPath: string;
   githubToken?: string;
+  chainId?: number;
 }): Promise<ExecutionResult> {
-  const { taskId, issueNumber, repo, owner, commitHash, artifactURI, agentId, repoPath, githubToken } = params;
+  const { taskId, issueNumber, repo, owner, commitHash, artifactURI, agentId, repoPath, githubToken, chainId = 84532 } = params;
 
   // Step 1: Fetch GitHub issue
   console.log(`📋 Fetching issue #${issueNumber} from ${owner}/${repo}...`);
@@ -76,23 +78,30 @@ export async function executeTask(params: {
     console.log('❌ Test execution failed');
   }
 
-  // Step 4: Build receipt
+  // Step 4: Build receipt with proper cryptographic hashes
+  const taskHash = buildTaskHash(owner, repo, issueNumber, commitHash);
+  const testReportHash = buildTestReportHash(testOutput);
+  
   const receipt: Receipt = {
-    taskHash: `${taskId}-${issueNumber}`,
-    commitHash: commitHash,
-    testReportHash: testOutput,
-    artifactURI: artifactURI,
-    agentId: agentId,
-    timestamp: Date.now()
+    taskHash,
+    commitHash,
+    testReportHash,
+    artifactURI,
+    agentId,
+    timestamp: Date.now(),
+    chainId
   };
 
   const receiptHash = hashReceipt(receipt);
   
   // Step 5: Write receipt to file
-  const out = { receipt, receiptHash, testOutput, patchOutput };
+  const out = { receipt, receiptHash, testOutput, patchOutput, testStatus };
   writeFileSync(`${repoPath}/.axiomforge-receipt.json`, JSON.stringify(out, null, 2));
   
   console.log(`📜 Receipt minted: ${receiptHash}`);
+  console.log(`   Task hash: ${taskHash}`);
+  console.log(`   Test hash: ${testReportHash}`);
+  console.log(`   Status: ${testStatus}`);
   
   return out;
 }

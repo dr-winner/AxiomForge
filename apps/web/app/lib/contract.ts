@@ -1,12 +1,14 @@
 // Contract utilities for AxiomForge Identity (ERC-8004)
-// Once deployed, these will connect to the live contract on Base Sepolia
+// Connects to the deployed contract on Base Sepolia
 
 export const CONTRACT_ABI = [
-  "event ReceiptMinted(bytes32 indexed receiptHash, string artifactUri, address indexed creator, uint256 timestamp)",
-  "function mintReceipt(bytes32 receiptHash, string memory artifactUri) external",
-  "function getReceipt(bytes32 receiptHash) external view returns (string memory artifactUri, address creator, uint256 timestamp, bool exists)",
-  "function receiptExists(bytes32 receiptHash) external view returns (bool)",
-  "function getAllReceipts() external view returns (bytes32[] memory)",
+  "event IdentityRegistered(address indexed agent, string metadataURI)",
+  "event ReceiptSubmitted(address indexed agent, bytes32 indexed receiptHash, string artifactURI)",
+  "function metadataURIs(address) external view returns (string memory)",
+  "function receiptOwner(bytes32) external view returns (address)",
+  "function registerIdentity(string calldata metadataURI) external",
+  "function submitReceipt(bytes32 receiptHash, string calldata artifactURI) external",
+  "function verifyReceipt(bytes32 receiptHash, address agent) external view returns (bool)",
 ];
 
 export interface ReceiptData {
@@ -16,7 +18,7 @@ export interface ReceiptData {
   exists: boolean;
 }
 
-// Placeholder contract address - update after deployment
+// Deployed contract address on Base Sepolia
 export const CONTRACT_ADDRESS = '0x6eeA600d2AbC11D3fF82a6732b1042Eec52A111d';
 
 // Base Sepolia chain ID
@@ -25,13 +27,6 @@ export const CHAIN_ID = 84532;
 // Helper to format receipt hash
 export function formatReceiptHash(hash: string): string {
   return hash.startsWith('0x') ? hash : `0x${hash}`;
-}
-
-// Helper to compute keccak256 hash (matching Solidity)
-export function computeReceiptHash(runId: string, artifactUri: string): string {
-  // This is a simplified version - in production, use ethers.utils.keccak256
-  const combined = `${runId}:${artifactUri}`;
-  return `0x${combined.split('').reduce((acc, char) => acc + char.charCodeAt(0).toString(16).padStart(2, '0'), '')}`;
 }
 
 // Check if we're on Base Sepolia

@@ -109,7 +109,7 @@ export default function RunsPage() {
                 </td>
                 <td style={{ padding: 12, borderBottom: '1px solid #e0e0e0' }}>
                   <Link
-                    href={`/receipts/${run.id}`}
+                    href="/receipts"
                     style={{
                       padding: '4px 8px',
                       background: '#f0f4ff',
@@ -133,6 +133,7 @@ export default function RunsPage() {
                       cursor: 'pointer',
                       fontSize: 12,
                     }}
+                    onClick={() => alert('Export: ' + run.id)}
                   >
                     Export
                   </button>

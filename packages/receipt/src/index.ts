@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { keccak256, toUtf8Bytes, solidityPackedKeccak256 } from 'ethers';
+import { keccak256, toUtf8Bytes, solidityPackedKeccak256, Wallet, recoverAddress } from 'ethers';
 
 /**
  * ERC-8004 Compliant Receipt Schema
@@ -96,9 +96,9 @@ export function buildTestReportHash(testOutput: string): string {
  * Sign receipt with agent private key (for off-chain verification)
  */
 export async function signReceipt(receipt: Receipt, privateKey: string): Promise<string> {
-  const wallet = new ethers.Wallet(privateKey);
+  const wallet = new Wallet(privateKey);
   const hash = hashReceipt(receipt);
-  const signature = await wallet.signMessage(ethers.getBytes(hash));
+  const signature = await wallet.signMessage(hash);
   return signature;
 }
 
@@ -107,6 +107,6 @@ export async function signReceipt(receipt: Receipt, privateKey: string): Promise
  */
 export function recoverSigner(receipt: Receipt, signature: string): string {
   const hash = hashReceipt(receipt);
-  const recovered = ethers.recoverAddress(ethers.getBytes(hash), signature);
+  const recovered = recoverAddress(hash, signature);
   return recovered;
 }

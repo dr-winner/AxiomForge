@@ -1,11 +1,13 @@
 import 'dotenv/config';
 import { Octokit } from '@octokit/rest';
 import { executeTask, createPR } from './execution.js';
+import { verifyReceipt } from '@axiomforge/receipt';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const OWNER = process.env.GITHUB_OWNER || 'dr-winner';
 const REPO = process.env.GITHUB_REPO || 'AxiomForge';
 const GITHUB_ISSUE = process.env.GITHUB_ISSUE ? parseInt(process.env.GITHUB_ISSUE) : null;
+const CHAIN_ID = parseInt(process.env.CHAIN_ID || '84532');
 
 if (!GITHUB_TOKEN) {
   console.error('Missing GITHUB_TOKEN');
@@ -17,6 +19,7 @@ const octokit = new Octokit({ auth: GITHUB_TOKEN });
 async function main() {
   console.log('⚡ AxiomForge Agent');
   console.log(`Target: ${OWNER}/${REPO}`);
+  console.log(`Chain: Base Sepolia (${CHAIN_ID})`);
 
   // Fetch latest open issue if none specified
   let issueNumber = GITHUB_ISSUE;
@@ -52,12 +55,18 @@ async function main() {
     agentId: 'erc8004:axiomforge',
     repoPath: process.cwd(),
     githubToken: GITHUB_TOKEN,
+    chainId: CHAIN_ID,
   });
 
   console.log('');
   console.log('📜 Receipt minted:', result.receiptHash);
   console.log('📄 Test status:', result.testOutput);
   console.log('🔧 Patch:', result.patchOutput);
+  console.log('✅ Test status:', result.testStatus);
+  
+  // Verify receipt integrity
+  const isValid = verifyReceipt(result.receipt, result.receiptHash);
+  console.log('🔐 Receipt verified:', isValid ? '✅ Valid' : '❌ Invalid');
   
   // Save receipt path
   const receiptPath = `${process.cwd()}/.axiomforge-receipt.json`;
